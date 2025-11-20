@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 
 interface ModelClausesEditorProps {
@@ -70,7 +71,7 @@ const ModelClausesEditor: React.FC<ModelClausesEditorProps> = ({ clauses, setCla
             <textarea
               id={`clause-${topic}`}
               rows={4}
-              className="w-full p-3 border border-gray-300 rounded-sm shadow-sm focus:ring-primary focus:border-primary bg-white text-gray-800 disabled:opacity-50"
+              className="w-full p-3 border border-gray-300 rounded-sm shadow-sm focus:ring-primary focus:border-primary bg-white text-gray-900 disabled:opacity-50"
               value={clause}
               onChange={(e) => handleClauseChange(topic, e.target.value)}
               disabled={disabled}
@@ -87,7 +88,7 @@ const ModelClausesEditor: React.FC<ModelClausesEditorProps> = ({ clauses, setCla
               id="new-clause-title"
               type="text"
               placeholder="e.g., Service Availability"
-              className="w-full p-3 border border-gray-300 rounded-sm shadow-sm focus:ring-primary focus:border-primary"
+              className="w-full p-3 border border-gray-300 rounded-sm shadow-sm focus:ring-primary focus:border-primary bg-white text-gray-900 placeholder-gray-400"
               value={newClauseTitle}
               onChange={(e) => setNewClauseTitle(e.target.value)}
               disabled={disabled}
@@ -100,7 +101,7 @@ const ModelClausesEditor: React.FC<ModelClausesEditorProps> = ({ clauses, setCla
               id="new-clause-text"
               rows={4}
               placeholder="Enter the model clause text..."
-              className="w-full p-3 border border-gray-300 rounded-sm shadow-sm focus:ring-primary focus:border-primary"
+              className="w-full p-3 border border-gray-300 rounded-sm shadow-sm focus:ring-primary focus:border-primary bg-white text-gray-900 placeholder-gray-400"
               value={newClauseText}
               onChange={(e) => setNewClauseText(e.target.value)}
               disabled={disabled}
@@ -122,3 +123,4 @@ const ModelClausesEditor: React.FC<ModelClausesEditorProps> = ({ clauses, setCla
 };
 
 export default ModelClausesEditor;
+    

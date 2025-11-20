@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { ScorecardData, Score } from '../types';
 
 interface ScorecardProps {
@@ -7,35 +8,6 @@ interface ScorecardProps {
   onStopSummary: () => void;
   ttsState: 'idle' | 'generating' | 'playing';
 }
-
-const getScoreStyles = (score: Score) => {
-  switch (score) {
-    case Score.GREEN:
-      return {
-        bgColor: 'bg-white',
-        borderColor: 'border-l-emerald-500',
-        textColor: 'text-emerald-700',
-        badgeColor: 'bg-emerald-100',
-        badgeTextColor: 'text-emerald-800',
-      };
-    case Score.YELLOW:
-      return {
-        bgColor: 'bg-white',
-        borderColor: 'border-l-amber-500',
-        textColor: 'text-amber-700',
-        badgeColor: 'bg-amber-100',
-        badgeTextColor: 'text-amber-800',
-      };
-    case Score.RED:
-      return {
-        bgColor: 'bg-white',
-        borderColor: 'border-l-primary', // Using Osler Red for High Risk
-        textColor: 'text-primary',
-        badgeColor: 'bg-red-100',
-        badgeTextColor: 'text-primary',
-      };
-  }
-};
 
 const getHeatmapStyles = (score: Score) => {
   switch (score) {
@@ -85,13 +57,17 @@ const getHeatmapStyles = (score: Score) => {
 };
 
 const Scorecard: React.FC<ScorecardProps> = ({ data, onPlaySummary, onStopSummary, ttsState }) => {
-  const createAnchorId = (topic: string) => `topic-${topic.replace(/\s+/g, '-').toLowerCase()}`;
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
+
+  const toggleItem = (topic: string) => {
+    setExpandedItems(prev => ({
+      ...prev,
+      [topic]: !prev[topic]
+    }));
+  };
 
   return (
-    <div className="space-y-12">
-      
-      {/* Summary Section (Heatmap) */}
-      <div className="bg-box-gray rounded-sm p-8 border border-gray-200">
+    <div className="bg-box-gray rounded-sm p-8 border border-gray-200">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-2xl font-bold text-primary">Risk Assessment</h3>
           <button
@@ -132,13 +108,18 @@ const Scorecard: React.FC<ScorecardProps> = ({ data, onPlaySummary, onStopSummar
         <div className="flex flex-col gap-3">
           {data.map((item) => {
             const styles = getHeatmapStyles(item.score);
+            const isExpanded = !!expandedItems[item.topic];
+
             return (
-              <a 
+              <div 
                 key={`summary-${item.topic}`}
-                href={`#${createAnchorId(item.topic)}`}
-                className={`block p-5 rounded-sm border bg-white transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${styles.container}`}
+                className={`rounded-sm border bg-white transition-all duration-200 ${styles.container} ${isExpanded ? 'ring-1 ring-gray-300 shadow-md' : ''}`}
               >
-                <div className="flex justify-between items-center">
+                <button 
+                    onClick={() => toggleItem(item.topic)}
+                    className="w-full p-6 flex justify-between items-center text-left focus:outline-none"
+                    aria-expanded={isExpanded}
+                >
                     <div className="flex-1 pr-4">
                         <h4 className={`text-lg font-bold ${styles.text} mb-1`}>{item.topic}</h4>
                         <div className="flex items-center gap-3">
@@ -153,72 +134,59 @@ const Scorecard: React.FC<ScorecardProps> = ({ data, onPlaySummary, onStopSummar
                             )}
                         </div>
                     </div>
-                    <div className="flex-shrink-0">
+                    <div className="flex items-center gap-4 flex-shrink-0">
                         {styles.icon}
+                        <svg 
+                            className={`w-5 h-5 text-gray-400 transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} 
+                            fill="none" 
+                            viewBox="0 0 24 24" 
+                            stroke="currentColor"
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
                     </div>
-                </div>
-              </a>
-            );
-          })}
-        </div>
-      </div>
+                </button>
 
-      {/* Detailed Analysis Section */}
-      <div>
-        <div className="step-divider"></div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-8">Detailed Findings</h2>
-        
-        <div className="space-y-8">
-          {data.map((item) => {
-            const styles = getScoreStyles(item.score);
-            return (
-              <div
-                key={item.topic}
-                id={createAnchorId(item.topic)}
-                className={`p-8 rounded-sm shadow-sm border border-gray-200 border-l-4 ${styles.bgColor} ${styles.borderColor} scroll-mt-24`}
-              >
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-2">
-                  <h3 className="text-xl font-bold text-gray-900">{item.topic}</h3>
-                  <span className={`px-4 py-1 text-xs font-bold uppercase tracking-widest rounded-full w-fit ${styles.badgeColor} ${styles.badgeTextColor}`}>{item.score}</span>
-                </div>
-                
-                <div className="space-y-6">
-                  <div>
-                    <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-2">Summary</h4>
-                    <p className="text-gray-700 leading-relaxed">{item.summary}</p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-2">Plain Language Explanation</h4>
-                    <p className="text-gray-700 leading-relaxed">{item.plainLanguageExplanation}</p>
-                  </div>
-                  
-                  <div className="grid md:grid-cols-2 gap-6 mt-4">
-                    <div>
-                      <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-2">
-                        Contract Clause
-                        {item.sectionReference && item.sectionReference !== 'N/A' && (
-                             <span className="font-normal normal-case ml-2 text-gray-400">({item.sectionReference})</span>
-                        )}
-                      </h4>
-                      <div className="p-4 bg-gray-50 rounded-sm border border-gray-200 italic text-sm text-gray-600 h-full">
-                        {item.contractClause || "No specific clause found."}
-                      </div>
+                {isExpanded && (
+                    <div className="px-6 pb-10 pt-2 border-t border-gray-100 animate-fade-in">
+                         <div className="space-y-6 mt-4">
+                            <div>
+                                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-2">Summary</h4>
+                                <p className="text-gray-700 leading-relaxed">{item.summary}</p>
+                            </div>
+                            
+                            <div>
+                                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-2">Plain Language Explanation</h4>
+                                <p className="text-gray-700 leading-relaxed">{item.plainLanguageExplanation}</p>
+                            </div>
+                            
+                            <div className="grid md:grid-cols-2 gap-6 mt-4">
+                                <div>
+                                    <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-2">
+                                        Contract Clause
+                                        {item.sectionReference && item.sectionReference !== 'N/A' && (
+                                                <span className="font-normal normal-case ml-2 text-gray-400">({item.sectionReference})</span>
+                                        )}
+                                    </h4>
+                                    <div className="p-6 bg-gray-50 rounded-sm border border-gray-200 italic text-sm text-gray-600 h-full">
+                                        {item.contractClause || "No specific clause found."}
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-2">Standard Model Clause</h4>
+                                    <div className="p-6 bg-gray-50 rounded-sm border border-gray-200 text-sm text-gray-600 h-full">
+                                        {item.modelClause}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-2">Standard Model Clause</h4>
-                      <div className="p-4 bg-gray-50 rounded-sm border border-gray-200 text-sm text-gray-600 h-full">
-                        {item.modelClause}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
             );
           })}
         </div>
       </div>
-    </div>
   );
 };
 

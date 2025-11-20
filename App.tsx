@@ -45,7 +45,6 @@ async function decodeAudioData(
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>('idle');
-  // We'll keep the concept of 'tabs' but render them as steps for the new design
   const [activeTab, setActiveTab] = useState<'upload' | 'config'>('upload');
   
   const [file, setFile] = useState<File | null>(null);
@@ -61,8 +60,8 @@ const App: React.FC = () => {
   const [progressText, setProgressText] = useState('');
   
   const modalRef = useRef<HTMLDivElement>(null);
-  const previewButtonRef = useRef<HTMLButtonElement>(null);
   const activeSourceNode = useRef<AudioBufferSourceNode | null>(null);
+  const step2Ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Initialize AudioContext on client-side mount.
@@ -73,12 +72,15 @@ const App: React.FC = () => {
   useEffect(() => {
       if (showPreview) {
           setTimeout(() => modalRef.current?.focus(), 50);
-      } else {
-          if (appState === 'results') {
-             previewButtonRef.current?.focus();
-          }
       }
-  }, [showPreview, appState]);
+  }, [showPreview]);
+
+  // Auto-scroll to Step 2 when analyzing
+  useEffect(() => {
+      if (appState === 'analyzing' && step2Ref.current) {
+          step2Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+  }, [appState]);
 
   // Keyboard shortcut for theme toggle (Red/White)
   useEffect(() => {
@@ -147,11 +149,77 @@ const App: React.FC = () => {
   const handleGenerateAddendum = () => {
     if (!addendumText) return;
     
-    const blob = new Blob([addendumText], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+    // Escape HTML characters
+    const safeText = addendumText
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+    // Format text for Word HTML compatibility
+    // Split into paragraphs based on double newlines
+    const paragraphs = safeText.split(/\n\n+/);
+    
+    const formattedContent = paragraphs.map(para => {
+        if (!para.trim()) return '';
+        // Inside paragraphs, preserve single line breaks as <br/>
+        const lines = para.split(/\n/);
+        const processedLines = lines.map(line => {
+             const trimmed = line.trim();
+             // Simple heuristic for bold headings: All caps or standard numbering (e.g. "1. DEFINITIONS")
+             const isHeading = trimmed.length > 0 && trimmed.length < 100 && (
+                 trimmed === trimmed.toUpperCase() || 
+                 /^\d+(\.\d+)*\.?\s+[A-Z]/.test(trimmed)
+             );
+             
+             return isHeading ? `<strong>${line}</strong>` : line;
+        }).join('<br/>');
+        
+        return `<p>${processedLines}</p>`;
+    }).join('');
+
+    // Use proper HTML structure with Word-specific XML namespaces and CSS
+    const htmlContent = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head>
+        <meta charset="utf-8">
+        <title>AI Services Addendum</title>
+        <!--[if gte mso 9]>
+        <xml>
+        <w:WordDocument>
+        <w:View>Print</w:View>
+        <w:Zoom>100</w:Zoom>
+        <w:DoNotOptimizeForBrowser/>
+        </w:WordDocument>
+        </xml>
+        <![endif]-->
+        <style>
+            body { 
+                font-family: 'Times New Roman', serif; 
+                font-size: 12pt; 
+                line-height: 1.5; 
+                color: #000000;
+                margin: 1.0in;
+            }
+            p {
+                margin: 0 0 12pt 0;
+                text-align: justify;
+            }
+            strong {
+                font-weight: bold;
+            }
+        </style>
+        </head>
+        <body>
+            ${formattedContent}
+        </body>
+        </html>
+    `;
+
+    const blob = new Blob([htmlContent], { type: 'application/msword' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'AI_Addendum.docx';
+    a.download = 'AI_Addendum.doc';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -193,7 +261,6 @@ const App: React.FC = () => {
     } catch (error) {
       console.error("Failed to generate or play speech summary", error);
       setErrorMessage("Failed to generate the audio summary. Please try again.");
-      setAppState('error'); 
       setTtsState('idle');
     }
   };
@@ -222,6 +289,7 @@ const App: React.FC = () => {
     setProgressText('');
     setAppState('idle');
     handleStopSummary();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const isUiDisabled = appState === 'analyzing';
@@ -272,136 +340,6 @@ const App: React.FC = () => {
     );
 };
 
-  const renderContent = () => {
-    // Main Container style to match the "Step" layout (white bg is default, but we want clean spacing)
-    
-    switch (appState) {
-      case 'analyzing':
-        return (
-          <div className="bg-box-gray rounded-sm p-12 border border-gray-200">
-            <ProgressBar progress={progress} text={progressText} />
-          </div>
-        );
-      case 'results':
-        return scorecardData && (
-          <div className="space-y-8">
-               <div className="bg-box-gray border border-gray-200 rounded-sm p-8 text-center">
-                  <h2 className="text-3xl font-bold text-primary mb-6">Analysis Complete</h2>
-                  <p className="mb-6 text-text-secondary">Review your risk scorecard below or download the generated addendum.</p>
-                  
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <button
-                      onClick={handleGenerateAddendum}
-                      disabled={isUiDisabled || !addendumText}
-                      className="w-full sm:w-auto px-8 py-3 border border-gray-800 text-base font-medium rounded-full text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 transition-colors"
-                    >
-                      Download as .docx
-                    </button>
-                    <button
-                      ref={previewButtonRef}
-                      onClick={handlePreviewAddendum}
-                      disabled={isUiDisabled || !addendumText}
-                      className="w-full sm:w-auto px-8 py-3 border border-gray-800 text-base font-medium rounded-full text-gray-900 bg-transparent hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 transition-colors"
-                    >
-                      Preview Addendum
-                    </button>
-                  </div>
-              </div>
-
-              <Scorecard 
-                data={scorecardData}
-                onPlaySummary={handlePlaySummary}
-                onStopSummary={handleStopSummary}
-                ttsState={ttsState}
-              />
-              
-              <div className="step-divider"></div>
-
-              <div className="flex justify-center pb-12">
-                <button
-                  onClick={handleReset}
-                  disabled={isUiDisabled}
-                  className="px-8 py-3 border border-gray-300 text-base font-medium rounded-full text-gray-600 bg-white hover:border-gray-400 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary transition-colors disabled:opacity-50"
-                >
-                  Start New Analysis
-                </button>
-              </div>
-            </div>
-        );
-      case 'error':
-        return (
-          <div className="text-center p-8 bg-red-50 rounded-sm border border-red-200">
-            <h3 className="text-xl font-bold text-red-800">An Error Occurred</h3>
-            <p className="mt-2 text-red-700">{errorMessage}</p>
-            <button
-              onClick={handleReset}
-              className="mt-6 px-8 py-2 border border-red-800 text-base font-medium rounded-full text-red-800 bg-transparent hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-            >
-              Try Again
-            </button>
-          </div>
-        );
-      case 'idle':
-      default:
-        return (
-          <div>
-            {/* Step 1 Header */}
-            <div className="mb-8">
-               <h2 className="text-3xl sm:text-4xl font-semibold text-primary mb-4">
-                 Step 1: Upload your Contract
-               </h2>
-            </div>
-
-            {/* Content Box */}
-            <div className="bg-box-gray p-8 sm:p-12 rounded-sm mb-8">
-              {activeTab === 'upload' ? (
-                 <div className="max-w-3xl">
-                    <p className="text-lg text-text-primary mb-6">
-                        Before getting started, ensure you have your contract file ready in PDF or Word format. 
-                        This tool will analyze the document against our standard model clauses.
-                    </p>
-                    
-                    <div className="mt-8">
-                        <FileUpload onFileSelect={handleFileSelect} disabled={isUiDisabled} />
-                    </div>
-
-                    {fileName && (
-                        <div className="mt-4 flex items-center text-primary font-medium">
-                            <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            Selected: {fileName}
-                        </div>
-                    )}
-                    
-                    <div className="mt-8">
-                         <button
-                            onClick={handleAnalyze}
-                            disabled={!file || isUiDisabled}
-                            className="px-10 py-3 border border-gray-900 text-lg font-medium rounded-full text-gray-900 bg-transparent hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                            Next
-                        </button>
-                    </div>
-                </div>
-              ) : (
-                <ModelClausesEditor clauses={modelClauses} setClauses={setModelClauses} disabled={isUiDisabled} />
-              )}
-            </div>
-
-            {/* Visual decoration for next steps */}
-            <div className="step-divider"></div>
-            <h2 className="text-3xl sm:text-4xl font-semibold text-gray-300 mb-8">
-                Step 2: Review Risk Scorecard
-            </h2>
-            <div className="step-divider"></div>
-            <h2 className="text-3xl sm:text-4xl font-semibold text-gray-300 mb-8">
-                Step 3: Generate Addendum
-            </h2>
-
-          </div>
-        );
-    }
-  };
-
   return (
     <div className="min-h-screen font-sans bg-white">
       <Header 
@@ -411,7 +349,151 @@ const App: React.FC = () => {
       />
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-5xl mx-auto">
-            {renderContent()}
+            
+            {activeTab === 'config' ? (
+                <div className="animate-fade-in">
+                    <div className="mb-8">
+                        <h2 className="text-3xl sm:text-4xl font-semibold text-primary mb-4">
+                            Configuration
+                        </h2>
+                        <p className="text-lg text-text-primary mb-6">
+                            Customize the model clauses used for contract analysis.
+                        </p>
+                    </div>
+                    <div className="bg-box-gray p-8 sm:p-12 rounded-sm mb-8 border border-gray-200 transition-all">
+                        <ModelClausesEditor clauses={modelClauses} setClauses={setModelClauses} disabled={isUiDisabled} />
+                    </div>
+                </div>
+            ) : (
+                <>
+                    {/* Step 1: Upload */}
+                    <div className="mb-8">
+                        <h2 className="text-3xl sm:text-4xl font-semibold text-primary mb-4">
+                            Step 1: Upload your Contract
+                        </h2>
+                    </div>
+
+                    <div className="bg-box-gray p-8 sm:p-12 rounded-sm mb-8 border border-gray-200 transition-all">
+                        <div className="max-w-3xl">
+                            <p className="text-lg text-text-primary mb-6">
+                                Before getting started, ensure you have your contract file ready in PDF or Word format. 
+                                This tool will analyze the document against our standard model clauses.
+                            </p>
+                            
+                            <div className="mt-8">
+                                <FileUpload onFileSelect={handleFileSelect} disabled={isUiDisabled} />
+                            </div>
+
+                            {fileName && (
+                                <div className="mt-4 flex items-center text-primary font-medium">
+                                    <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    Selected: {fileName}
+                                </div>
+                            )}
+                            
+                            <div className="mt-8">
+                                <button
+                                    onClick={handleAnalyze}
+                                    disabled={!file || isUiDisabled}
+                                    className="px-10 py-3 border border-gray-900 text-lg font-medium rounded-full text-gray-900 bg-transparent hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    {appState === 'results' ? 'Re-analyze' : 'Next'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="step-divider"></div>
+
+                    {/* Step 2: Scorecard */}
+                    <div ref={step2Ref}>
+                        <h2 className={`text-3xl sm:text-4xl font-semibold mb-8 transition-colors duration-300 ${
+                            appState === 'idle' ? 'text-gray-300' : 'text-primary'
+                        }`}>
+                            Step 2: Review Risk Scorecard
+                        </h2>
+
+                        {(appState === 'analyzing' || appState === 'results' || appState === 'error') && (
+                            <div className="animate-fade-in">
+                                {appState === 'analyzing' && (
+                                    <div className="bg-box-gray rounded-sm p-12 border border-gray-200">
+                                        <ProgressBar progress={progress} text={progressText} />
+                                    </div>
+                                )}
+
+                                {appState === 'error' && (
+                                    <div className="text-center p-8 bg-red-50 rounded-sm border border-red-200">
+                                        <h3 className="text-xl font-bold text-red-800">An Error Occurred</h3>
+                                        <p className="mt-2 text-red-700">{errorMessage}</p>
+                                        <button
+                                            onClick={handleReset}
+                                            className="mt-6 px-8 py-2 border border-red-800 text-base font-medium rounded-full text-red-800 bg-transparent hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                        >
+                                        Try Again
+                                        </button>
+                                    </div>
+                                )}
+
+                                {appState === 'results' && scorecardData && (
+                                    <Scorecard 
+                                        data={scorecardData}
+                                        onPlaySummary={handlePlaySummary}
+                                        onStopSummary={handleStopSummary}
+                                        ttsState={ttsState}
+                                    />
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="step-divider"></div>
+
+                    {/* Step 3: Addendum */}
+                    <div>
+                        <h2 className={`text-3xl sm:text-4xl font-semibold mb-8 transition-colors duration-300 ${
+                            appState === 'results' ? 'text-primary' : 'text-gray-300'
+                        }`}>
+                            Step 3: Generate Addendum
+                        </h2>
+
+                        {appState === 'results' && (
+                            <div className="bg-box-gray p-8 sm:p-12 rounded-sm border border-gray-200 animate-fade-in">
+                                <h3 className="text-2xl font-bold text-primary mb-4">Drafting Complete</h3>
+                                <p className="text-text-secondary mb-8 text-lg">
+                                    Based on the deviations found in the risk scorecard, we have generated a remedial addendum to align the contract with your model clauses.
+                                </p>
+                                
+                                <div className="flex flex-col sm:flex-row items-center gap-4 mb-10">
+                                    <button
+                                        onClick={handleGenerateAddendum}
+                                        disabled={!addendumText}
+                                        className="w-full sm:w-auto px-8 py-3 border border-gray-800 text-base font-medium rounded-full text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 transition-colors"
+                                    >
+                                        Download as .doc
+                                    </button>
+                                    <button
+                                        onClick={handlePreviewAddendum}
+                                        disabled={!addendumText}
+                                        className="w-full sm:w-auto px-8 py-3 border border-gray-800 text-base font-medium rounded-full text-gray-900 bg-transparent hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 transition-colors"
+                                    >
+                                        Preview Addendum
+                                    </button>
+                                </div>
+
+                                <div className="border-t border-gray-300 pt-8">
+                                    <button
+                                        onClick={handleReset}
+                                        className="px-6 py-2 border border-gray-300 text-sm font-medium rounded-full text-gray-600 bg-white hover:border-gray-400 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+                                    >
+                                        Start New Analysis
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </>
+            )}
+
         </div>
       </main>
       {renderPreviewModal()}
