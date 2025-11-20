@@ -8,6 +8,7 @@ import FileUpload from './components/FileUpload';
 import ModelClausesEditor from './components/ModelClausesEditor';
 import ProgressBar from './components/ProgressBar';
 import Scorecard from './components/Scorecard';
+import Playbooks from './components/Playbooks';
 
 type TtsState = 'idle' | 'generating' | 'playing';
 
@@ -45,7 +46,7 @@ async function decodeAudioData(
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>('idle');
-  const [activeTab, setActiveTab] = useState<'upload' | 'config'>('upload');
+  const [activeTab, setActiveTab] = useState<'upload' | 'config' | 'playbooks'>('upload');
   
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string>('');
@@ -344,13 +345,17 @@ const App: React.FC = () => {
     <div className="min-h-screen font-sans bg-white">
       <Header 
         onHomeClick={isUiDisabled ? undefined : handleReset}
-        onEditClauses={appState === 'idle' ? () => setActiveTab(prev => prev === 'upload' ? 'config' : 'upload') : undefined}
+        onEditClauses={appState === 'idle' ? () => setActiveTab(prev => prev === 'config' ? 'upload' : 'config') : undefined}
         isEditing={activeTab === 'config'}
+        onPlaybooksClick={appState === 'idle' ? () => setActiveTab(prev => prev === 'playbooks' ? 'upload' : 'playbooks') : undefined}
+        isPlaybooks={activeTab === 'playbooks'}
       />
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-5xl mx-auto">
             
-            {activeTab === 'config' ? (
+            {activeTab === 'playbooks' ? (
+                <Playbooks />
+            ) : activeTab === 'config' ? (
                 <div className="animate-fade-in">
                     <div className="mb-8">
                         <h2 className="text-3xl sm:text-4xl font-semibold text-primary mb-4">
