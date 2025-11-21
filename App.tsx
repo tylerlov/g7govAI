@@ -55,6 +55,8 @@ const App: React.FC = () => {
 
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string>('');
+  const [contextFile, setContextFile] = useState<File | null>(null);
+  const [showContext, setShowContext] = useState(false);
   const [modelClauses, setModelClauses] = useState<Record<string, string>>(INITIAL_MODEL_CLAUSES);
   const [scorecardData, setScorecardData] = useState<ScorecardData | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -167,7 +169,7 @@ const App: React.FC = () => {
 
     try {
       // Phase 1: Analysis
-      setProgressText('Analyzing contract against model clauses...');
+      setProgressText('Analyzing contract against playbook...');
       startProgress(65);
 
       const results = await analyzeContract(file, modelClauses);
@@ -333,6 +335,8 @@ const App: React.FC = () => {
     if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
     setFile(null);
     setFileName('');
+    setContextFile(null);
+    setShowContext(false);
     setScorecardData(null);
     setErrorMessage('');
     setAddendumText(null);
@@ -411,7 +415,7 @@ const App: React.FC = () => {
             ) : activeTab === 'config' ? (
                 <div className="animate-fade-in">
                     <div className="mb-8">
-                        <h2 className="text-3xl sm:text-4xl text-primary mb-4 font-serif">
+                        <h2 className="text-[36px] text-primary mb-4 font-serif">
                             Configuration
                         </h2>
                         <p className="text-lg text-text-primary mb-6">
@@ -426,7 +430,7 @@ const App: React.FC = () => {
                 <>
                     {/* Step 1: Upload */}
                     <div className="mb-8">
-                        <h2 className="text-3xl sm:text-4xl text-primary mb-4 font-serif">
+                        <h2 className="text-[36px] text-primary mb-4 font-serif">
                             Step 1: Upload your Contract
                         </h2>
                     </div>
@@ -434,8 +438,8 @@ const App: React.FC = () => {
                     <div className="bg-box-gray p-8 sm:p-12 rounded-sm mb-8 border border-gray-200 transition-all">
                         <div className="max-w-3xl">
                             <p className="text-lg text-text-primary mb-6">
-                                Before getting started, select the governing playbook and upload your contract file. 
-                                This tool will analyze the document against our standard model clauses.
+                                To get started, select the governing playbook and upload your contract. 
+                                This tool will analyze the document against the selected playbook.
                             </p>
                             
                             {/* Playbook Dropdown */}
@@ -454,7 +458,7 @@ const App: React.FC = () => {
                                     <span className={`block truncate font-medium ${selectedPlaybook ? 'text-gray-900' : 'text-gray-500'}`}>
                                         {selectedPlaybook ? selectedPlaybook.name : "Choose a playbook..."}
                                     </span>
-                                    <svg className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${isPlaybookDropdownOpen ? 'transform rotate-180' : ''}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <svg className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${isPlaybookDropdownOpen ? 'transform rotate-180' : ''}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                         <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                                     </svg>
                                 </button>
@@ -496,13 +500,34 @@ const App: React.FC = () => {
                             </div>
 
                             <div className="mt-8">
-                                <FileUpload onFileSelect={handleFileSelect} disabled={isUiDisabled} />
+                                <label className="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">
+                                    Upload Contract <span className="text-red-600 normal-case font-normal ml-1">*</span>
+                                </label>
+                                <FileUpload onFileSelect={handleFileSelect} disabled={isUiDisabled} selectedFile={file} />
                             </div>
 
-                            {fileName && (
-                                <div className="mt-4 flex items-center text-primary font-medium">
-                                    <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                    Selected: {fileName}
+                            {!showContext ? (
+                                <div className="mt-6">
+                                    <button
+                                        onClick={() => setShowContext(true)}
+                                        className="text-gray-600 font-bold text-sm hover:underline focus:outline-none flex items-center"
+                                        disabled={isUiDisabled}
+                                    >
+                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        Add additional context
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="mt-8 animate-fade-in">
+                                    <label className="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">
+                                        Provide additional context
+                                    </label>
+                                    <p className="text-gray-600 mb-4 text-base">
+                                        Provide any RFP, contract specifications, or other documents that might provide context as to the nature of the contract (optional)
+                                    </p>
+                                    <FileUpload onFileSelect={(f) => setContextFile(f)} disabled={isUiDisabled} variant="secondary" selectedFile={contextFile} />
                                 </div>
                             )}
                             
@@ -512,7 +537,7 @@ const App: React.FC = () => {
                                     disabled={!file || isUiDisabled}
                                     className="px-10 py-3 border border-gray-900 text-lg font-medium rounded-full text-gray-900 bg-transparent hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
-                                    {appState === 'results' ? 'Re-analyze' : 'Next'}
+                                    {appState === 'results' ? 'Re-analyze' : 'Analyze Contract'}
                                 </button>
                             </div>
                         </div>
@@ -522,7 +547,7 @@ const App: React.FC = () => {
 
                     {/* Step 2: Scorecard */}
                     <div ref={step2Ref}>
-                        <h2 className={`text-3xl sm:text-4xl mb-8 transition-colors duration-300 font-serif ${
+                        <h2 className={`text-[36px] mb-8 transition-colors duration-300 font-serif ${
                             appState === 'idle' ? 'text-gray-300' : 'text-primary'
                         }`}>
                             Step 2: Review Risk Scorecard
@@ -537,7 +562,7 @@ const App: React.FC = () => {
                                 )}
 
                                 {appState === 'error' && (
-                                    <div className="text-center p-8 bg-red-50 rounded-sm border border-red-200">
+                                    <div className="text-center p-8 bg-red-50 rounded-sm border border-red-200" role="alert">
                                         <h3 className="text-xl font-bold text-red-800">An Error Occurred</h3>
                                         <p className="mt-2 text-red-700">{errorMessage}</p>
                                         <button
@@ -565,7 +590,7 @@ const App: React.FC = () => {
 
                     {/* Step 3: Addendum */}
                     <div>
-                        <h2 className={`text-3xl sm:text-4xl mb-8 transition-colors duration-300 font-serif ${
+                        <h2 className={`text-[36px] mb-8 transition-colors duration-300 font-serif ${
                             appState === 'results' ? 'text-primary' : 'text-gray-300'
                         }`}>
                             Step 3: Generate Addendum

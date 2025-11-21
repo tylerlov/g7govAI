@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Playbook } from '../types';
 
 interface PlaybooksProps {
@@ -7,7 +7,7 @@ interface PlaybooksProps {
     setPlaybooks: (playbooks: Playbook[]) => void;
 }
 
-const SHARED_OPTIONS = ['BoC Federal', 'Finance Ottawa', 'All', 'Legal Team', '[Group]'];
+const SHARED_OPTIONS = ['BoC Federal', 'Justice Ottawa', 'All', 'Legal Team', '[Group]'];
 
 const Playbooks: React.FC<PlaybooksProps> = ({ playbooks, setPlaybooks }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -17,10 +17,20 @@ const Playbooks: React.FC<PlaybooksProps> = ({ playbooks, setPlaybooks }) => {
   // New Playbook Form State
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
-  const [newShared, setNewShared] = useState('BoC Federal');
+  const [newShared, setNewShared] = useState('All');
   const [newFile, setNewFile] = useState<File | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  // Focus on name input when modal opens
+  useEffect(() => {
+    if (isModalOpen) {
+        setTimeout(() => {
+            nameInputRef.current?.focus();
+        }, 50);
+    }
+  }, [isModalOpen]);
 
   const handleSave = () => {
     if (!newName) return; // Basic validation
@@ -38,7 +48,7 @@ const Playbooks: React.FC<PlaybooksProps> = ({ playbooks, setPlaybooks }) => {
       setIsModalOpen(false);
       setNewName('');
       setNewDesc('');
-      setNewShared('BoC Federal');
+      setNewShared('All');
       setNewFile(null);
   }
   
@@ -122,10 +132,11 @@ const Playbooks: React.FC<PlaybooksProps> = ({ playbooks, setPlaybooks }) => {
           <div className="col-span-4 font-extrabold text-gray-900 text-sm uppercase tracking-wide text-right">Shared with</div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4" role="list">
         {playbooks.map((pb, index) => (
             <div 
                 key={pb.id} 
+                role="listitem"
                 draggable
                 onDragStart={() => handleDragStart(index)}
                 onDragEnter={() => handleDragEnter(index)}
@@ -135,14 +146,24 @@ const Playbooks: React.FC<PlaybooksProps> = ({ playbooks, setPlaybooks }) => {
                     draggedIndex === index ? 'opacity-40 bg-gray-100 border-dashed border-gray-400' : 'opacity-100 hover:border-gray-400'
                 }`}
             >
-                <div className="flex-1 pr-4 pointer-events-none">
-                    <h3 className="font-bold text-primary text-lg leading-tight mb-1">{pb.name}</h3>
-                    <p className="text-gray-900 text-sm font-medium leading-snug">{pb.description}</p>
+                <div className="flex items-start gap-4 flex-1 pr-4 pointer-events-none">
+                    {/* Canadian Flag */}
+                    <img 
+                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Flag_of_Canada_%28Pantone%29.svg/100px-Flag_of_Canada_%28Pantone%29.svg.png" 
+                        alt="Canada Flag"
+                        className="w-9 h-auto shadow-sm border border-gray-100 flex-shrink-0 mt-1"
+                    />
+                    <div>
+                        <h3 className="font-bold text-primary text-lg leading-tight mb-1">{pb.name}</h3>
+                        <p className="text-gray-900 text-sm font-medium leading-snug">{pb.description}</p>
+                    </div>
                 </div>
+
                 <div className="w-full md:w-auto min-w-[180px]">
                     <div className="relative">
                          <select 
                             value={pb.sharedWith}
+                            aria-label={`Sharing setting for ${pb.name}`}
                             onChange={(e) => {
                                 const updated = playbooks.map(p => p.id === pb.id ? {...p, sharedWith: e.target.value} : p);
                                 setPlaybooks(updated);
@@ -156,7 +177,7 @@ const Playbooks: React.FC<PlaybooksProps> = ({ playbooks, setPlaybooks }) => {
                             ))}
                          </select>
                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-900">
-                            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                          </div>
                     </div>
                 </div>
@@ -181,7 +202,7 @@ const Playbooks: React.FC<PlaybooksProps> = ({ playbooks, setPlaybooks }) => {
         onDrop={handleTrashDrop}
       >
          <div className="flex items-center gap-3 pointer-events-none">
-            <svg xmlns="http://www.w3.org/2000/svg" className={`w-6 h-6 ${isOverTrash ? 'animate-bounce' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg xmlns="http://www.w3.org/2000/svg" className={`w-6 h-6 ${isOverTrash ? 'animate-bounce' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
             <span className="font-bold text-base uppercase tracking-wide">
@@ -194,21 +215,25 @@ const Playbooks: React.FC<PlaybooksProps> = ({ playbooks, setPlaybooks }) => {
       {isModalOpen && (
         <div 
             className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50 p-4"
+            role="dialog"
+            aria-labelledby="add-playbook-title"
             onClick={(e) => { if(e.target === e.currentTarget) closeModal(); }}
         >
             <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full p-8 border-2 border-gray-300 relative animate-fade-in">
-                <h3 className="text-2xl font-extrabold text-gray-900 mb-2">Add Playbook</h3>
+                <h3 id="add-playbook-title" className="text-2xl font-extrabold text-gray-900 mb-2">Add Playbook</h3>
                 <p className="text-gray-900 font-bold text-sm mb-6">This tool accepts playbooks in Word or PDF format.</p>
                 
                 <div className="space-y-5">
                     {/* Name */}
                     <div>
                          <input 
+                            ref={nameInputRef}
                             type="text" 
                             placeholder="Name"
                             value={newName}
                             onChange={(e) => setNewName(e.target.value)}
-                            className="w-full border-2 border-gray-300 bg-white rounded-md p-3 text-gray-900 placeholder-gray-500 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 italic"
+                            className="w-full border-2 border-gray-300 bg-white rounded-md p-3 text-gray-900 placeholder-gray-500 font-normal text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                            aria-label="Playbook Name"
                          />
                     </div>
 
@@ -241,7 +266,8 @@ const Playbooks: React.FC<PlaybooksProps> = ({ playbooks, setPlaybooks }) => {
                             rows={4}
                             value={newDesc}
                             onChange={(e) => setNewDesc(e.target.value)}
-                            className="w-full border-2 border-gray-300 bg-white rounded-md p-3 text-gray-900 placeholder-gray-500 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 italic resize-none"
+                            className="w-full border-2 border-gray-300 bg-white rounded-md p-3 text-gray-900 placeholder-gray-500 font-normal text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
+                            aria-label="Description"
                         />
                     </div>
 
@@ -259,7 +285,7 @@ const Playbooks: React.FC<PlaybooksProps> = ({ playbooks, setPlaybooks }) => {
                                 ))}
                             </select>
                             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                             </div>
                         </div>
                     </div>
@@ -276,8 +302,9 @@ const Playbooks: React.FC<PlaybooksProps> = ({ playbooks, setPlaybooks }) => {
                  <button 
                     onClick={closeModal}
                     className="absolute top-4 right-4 text-gray-400 hover:text-gray-900"
+                    aria-label="Close modal"
                 >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
             </div>
         </div>

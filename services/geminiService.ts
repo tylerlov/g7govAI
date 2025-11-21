@@ -52,7 +52,7 @@ export const analyzeContract = async (
     4. Provide a concise summary (1-2 sentences) explaining your reasoning for the score.
     5. Extract the exact text of the relevant clause from the contract. If none is found, return an empty string.
     6. Identify the specific section number or clause reference in the contract (e.g., "Section 5.1", "Clause 12.3", "Recital A"). If the clause is missing or not found, return "N/A".
-    7. Provide a "Plain Language Explanation". This should explain the analysis and risks in professional, objective, and clear language suitable for a college-level audience. It should be free of legal jargon but maintain a formal and non-editorial tone.
+    7. Provide a "Plain Language Explanation". This should explain the analysis and risks using clear, college-level writing that is easy for a layperson to understand. It must be no more than two sentences long and free of complex legal jargon.
 
     Return your analysis as a JSON object matching the provided schema. Ensure every field is populated for every topic provided.
   `;
