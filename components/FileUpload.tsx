@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 
 interface FileUploadProps {
@@ -69,9 +70,9 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, disabled }) => {
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
         <p className="mt-4 text-xl font-medium text-gray-900">
-          Select folder to scan
+          Click to Upload PDF or Word Document
         </p>
-        <p className="mt-2 text-sm text-gray-500">(or single PDF/Word file)</p>
+        <p className="mt-2 text-sm text-gray-500">(or drag and drop here)</p>
       </div>
     </div>
   );

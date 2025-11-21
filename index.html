@@ -4,17 +4,18 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Osler Code Detect</title>
+    <title>G7 GovAI: Negotiation Accelerator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&family=Noto+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         theme: {
           extend: {
             fontFamily: {
-              sans: ['Inter', 'sans-serif'],
+              sans: ['"Noto Sans"', 'sans-serif'],
+              serif: ['"EB Garamond"', 'serif'],
             },
             colors: {
               primary: '#990033',      // Osler Red
@@ -56,6 +57,21 @@
         margin-top: 2rem;
         margin-bottom: 2rem;
     }
+    
+    /* Red Theme Variables Override */
+    body.theme-red {
+        --color-primary: #DC2626; /* Red-600 */
+        --color-primary-hover: #B91C1C; /* Red-700 */
+    }
+    
+    body.theme-red .text-primary { color: var(--color-primary); }
+    body.theme-red .bg-primary { background-color: var(--color-primary); }
+    body.theme-red .border-primary { border-color: var(--color-primary); }
+    body.theme-red .ring-primary { --tw-ring-color: var(--color-primary); }
+    body.theme-red .focus\:ring-primary:focus { --tw-ring-color: var(--color-primary); }
+    body.theme-red .hover\:bg-primary:hover { background-color: var(--color-primary); }
+    body.theme-red .hover\:border-primary:hover { border-color: var(--color-primary); }
+    body.theme-red .hover\:text-primary:hover { color: var(--color-primary); }
 </style>
 </head>
   <body class="font-sans text-text-primary antialiased">

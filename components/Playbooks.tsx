@@ -105,10 +105,10 @@ const Playbooks: React.FC = () => {
   return (
     <div className="animate-fade-in w-full">
       <div className="flex justify-between items-center mb-10">
-        <h2 className="text-5xl font-bold text-gray-900 tracking-tight">Playbooks</h2>
+        <h2 className="text-[36px] text-primary font-serif">Playbooks</h2>
         <button 
             onClick={() => setIsModalOpen(true)}
-            className="px-6 py-3 bg-gray-900 text-white font-semibold rounded-md hover:bg-gray-800 transition-colors shadow-sm"
+            className="px-8 py-3 border border-gray-800 text-base font-medium rounded-full text-gray-900 bg-transparent hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors shadow-sm"
         >
             + Add Playbook
         </button>
@@ -116,7 +116,7 @@ const Playbooks: React.FC = () => {
 
       <div className="grid grid-cols-12 gap-4 mb-3 px-1">
           <div className="col-span-8 font-extrabold text-gray-900 text-sm uppercase tracking-wide">Playbook Name</div>
-          <div className="col-span-4 font-extrabold text-gray-900 text-sm uppercase tracking-wide pl-2">Shared with</div>
+          <div className="col-span-4 font-extrabold text-gray-900 text-sm uppercase tracking-wide text-right">Shared with</div>
       </div>
 
       <div className="space-y-4">
@@ -128,12 +128,12 @@ const Playbooks: React.FC = () => {
                 onDragEnter={() => handleDragEnter(index)}
                 onDragEnd={handleDragEnd}
                 onDragOver={(e) => e.preventDefault()}
-                className={`border-2 border-gray-500 rounded-lg p-5 bg-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm cursor-move transition-all duration-200 ${
-                    draggedIndex === index ? 'opacity-50 bg-gray-50 scale-[1.01] border-gray-700' : 'opacity-100 hover:border-gray-700'
+                className={`border border-gray-300 rounded-lg p-5 bg-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm cursor-move transition-all duration-200 ${
+                    draggedIndex === index ? 'opacity-50 bg-gray-50 scale-[1.01] border-gray-400' : 'opacity-100 hover:border-gray-400'
                 }`}
             >
                 <div className="flex-1 pr-4 pointer-events-none">
-                    <h3 className="font-bold text-gray-900 text-lg leading-tight mb-1">{pb.name}</h3>
+                    <h3 className="font-bold text-primary text-lg leading-tight mb-1">{pb.name}</h3>
                     <p className="text-gray-900 text-sm font-medium leading-snug">{pb.description}</p>
                 </div>
                 <div className="w-full md:w-auto min-w-[180px]">
@@ -144,7 +144,7 @@ const Playbooks: React.FC = () => {
                                 const updated = playbooks.map(p => p.id === pb.id ? {...p, sharedWith: e.target.value} : p);
                                 setPlaybooks(updated);
                             }}
-                            className="w-full appearance-none bg-white border-2 border-gray-500 text-gray-900 py-2 px-4 pr-10 rounded-md leading-tight focus:outline-none focus:border-gray-900 font-bold text-sm truncate cursor-pointer"
+                            className="w-full appearance-none bg-white border-2 border-gray-300 text-gray-900 py-2 px-4 pr-10 rounded-md leading-tight focus:outline-none focus:border-gray-900 font-bold text-sm truncate cursor-pointer"
                             // Stop propagation to prevent dragging when interacting with select
                             onMouseDown={(e) => e.stopPropagation()}
                          >
@@ -167,7 +167,7 @@ const Playbooks: React.FC = () => {
             className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50 p-4"
             onClick={(e) => { if(e.target === e.currentTarget) closeModal(); }}
         >
-            <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full p-8 border-2 border-gray-600 relative animate-fade-in">
+            <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full p-8 border-2 border-gray-300 relative animate-fade-in">
                 <h3 className="text-2xl font-extrabold text-gray-900 mb-2">Add Playbook</h3>
                 <p className="text-gray-900 font-bold text-sm mb-6">This tool accepts playbooks in Word or PDF format.</p>
                 
@@ -179,18 +179,12 @@ const Playbooks: React.FC = () => {
                             placeholder="Name"
                             value={newName}
                             onChange={(e) => setNewName(e.target.value)}
-                            className="w-full border-2 border-gray-900 bg-white rounded-md p-3 text-gray-900 placeholder-gray-500 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 italic"
+                            className="w-full border-2 border-gray-300 bg-white rounded-md p-3 text-gray-900 placeholder-gray-500 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 italic"
                          />
                     </div>
 
                      {/* File Select */}
-                    <div 
-                        className="border-2 border-gray-900 bg-white rounded-md p-3 cursor-pointer hover:bg-gray-50 flex items-center"
-                        onClick={() => fileInputRef.current?.click()}
-                    >
-                        <span className={`font-bold text-sm italic ${newFile ? 'text-gray-900' : 'text-gray-500'}`}>
-                            {newFile ? newFile.name : 'Select file to upload...'}
-                        </span>
+                    <div>
                         <input 
                             type="file" 
                             ref={fileInputRef}
@@ -198,6 +192,17 @@ const Playbooks: React.FC = () => {
                             className="hidden"
                             accept=".pdf,.doc,.docx"
                         />
+                        <div className="flex items-center gap-3">
+                            <button 
+                                onClick={() => fileInputRef.current?.click()}
+                                className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400"
+                            >
+                                Choose File
+                            </button>
+                            <span className={`text-sm truncate ${newFile ? 'text-gray-900 font-medium' : 'text-gray-500 italic'}`}>
+                                {newFile ? newFile.name : 'No file chosen'}
+                            </span>
+                        </div>
                     </div>
                     
                     {/* Description */}
@@ -207,7 +212,7 @@ const Playbooks: React.FC = () => {
                             rows={4}
                             value={newDesc}
                             onChange={(e) => setNewDesc(e.target.value)}
-                            className="w-full border-2 border-gray-900 bg-white rounded-md p-3 text-gray-900 placeholder-gray-500 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 italic resize-none"
+                            className="w-full border-2 border-gray-300 bg-white rounded-md p-3 text-gray-900 placeholder-gray-500 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 italic resize-none"
                         />
                     </div>
 
@@ -218,7 +223,7 @@ const Playbooks: React.FC = () => {
                             <select 
                                 value={newShared}
                                 onChange={(e) => setNewShared(e.target.value)}
-                                className="w-full appearance-none bg-white border-2 border-gray-900 text-gray-900 py-2 px-3 pr-8 rounded-md leading-tight focus:outline-none focus:border-gray-900 font-medium text-sm"
+                                className="w-full appearance-none bg-white border-2 border-gray-300 text-gray-900 py-2 px-3 pr-8 rounded-md leading-tight focus:outline-none focus:border-gray-900 font-medium text-sm"
                             >
                                 {SHARED_OPTIONS.map(opt => (
                                     <option key={opt} value={opt}>{opt}</option>

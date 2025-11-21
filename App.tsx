@@ -358,7 +358,7 @@ const App: React.FC = () => {
             ) : activeTab === 'config' ? (
                 <div className="animate-fade-in">
                     <div className="mb-8">
-                        <h2 className="text-3xl sm:text-4xl font-semibold text-primary mb-4">
+                        <h2 className="text-3xl sm:text-4xl text-primary mb-4 font-serif">
                             Configuration
                         </h2>
                         <p className="text-lg text-text-primary mb-6">
@@ -373,7 +373,7 @@ const App: React.FC = () => {
                 <>
                     {/* Step 1: Upload */}
                     <div className="mb-8">
-                        <h2 className="text-3xl sm:text-4xl font-semibold text-primary mb-4">
+                        <h2 className="text-3xl sm:text-4xl text-primary mb-4 font-serif">
                             Step 1: Upload your Contract
                         </h2>
                     </div>
@@ -412,7 +412,7 @@ const App: React.FC = () => {
 
                     {/* Step 2: Scorecard */}
                     <div ref={step2Ref}>
-                        <h2 className={`text-3xl sm:text-4xl font-semibold mb-8 transition-colors duration-300 ${
+                        <h2 className={`text-3xl sm:text-4xl mb-8 transition-colors duration-300 font-serif ${
                             appState === 'idle' ? 'text-gray-300' : 'text-primary'
                         }`}>
                             Step 2: Review Risk Scorecard
@@ -455,7 +455,7 @@ const App: React.FC = () => {
 
                     {/* Step 3: Addendum */}
                     <div>
-                        <h2 className={`text-3xl sm:text-4xl font-semibold mb-8 transition-colors duration-300 ${
+                        <h2 className={`text-3xl sm:text-4xl mb-8 transition-colors duration-300 font-serif ${
                             appState === 'results' ? 'text-primary' : 'text-gray-300'
                         }`}>
                             Step 3: Generate Addendum
