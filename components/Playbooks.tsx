@@ -1,48 +1,18 @@
 
 import React, { useState, useRef } from 'react';
+import { Playbook } from '../types';
 
-// Types
-interface Playbook {
-  id: number;
-  name: string;
-  description: string;
-  sharedWith: string;
+interface PlaybooksProps {
+    playbooks: Playbook[];
+    setPlaybooks: (playbooks: Playbook[]) => void;
 }
-
-// Initial Data matching the screenshot
-const INITIAL_PLAYBOOKS: Playbook[] = [
-  {
-    id: 1,
-    name: 'Bank of Canada - AI Procurement Playbook (Custom Development, Tier 2)',
-    description: 'Use for Tier 2 contracts (< $150,000) with for custom-developed AI software',
-    sharedWith: 'BoC Federal'
-  },
-  {
-    id: 2,
-    name: 'Finance Procurement Guidelines for AI - Professional Services',
-    description: 'Generally applicable to all contracts for professional services',
-    sharedWith: 'Finance Ottawa'
-  },
-  {
-    id: 3,
-    name: 'Procurement Standard Clause - SaaS Services',
-    description: 'General Federal government guidelines for procurement of AI SaaS services',
-    sharedWith: 'All'
-  },
-   {
-    id: 4,
-    name: '[Playbook Name]',
-    description: '[Description of when to use this playbook]',
-    sharedWith: '[Group]'
-  }
-];
 
 const SHARED_OPTIONS = ['BoC Federal', 'Finance Ottawa', 'All', 'Legal Team', '[Group]'];
 
-const Playbooks: React.FC = () => {
-  const [playbooks, setPlaybooks] = useState<Playbook[]>(INITIAL_PLAYBOOKS);
+const Playbooks: React.FC<PlaybooksProps> = ({ playbooks, setPlaybooks }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [isOverTrash, setIsOverTrash] = useState(false);
   
   // New Playbook Form State
   const [newName, setNewName] = useState('');
@@ -100,10 +70,43 @@ const Playbooks: React.FC = () => {
 
   const handleDragEnd = () => {
     setDraggedIndex(null);
+    setIsOverTrash(false);
+  };
+
+  // Trash Handlers
+  const handleTrashDragEnter = (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsOverTrash(true);
+  };
+
+  const handleTrashDragLeave = (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      // Check if we are really leaving the trash container (and not just entering a child element)
+      if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+      setIsOverTrash(false);
+  };
+  
+  const handleTrashDragOver = (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+  };
+
+  const handleTrashDrop = (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (draggedIndex !== null) {
+          const newPlaybooks = [...playbooks];
+          newPlaybooks.splice(draggedIndex, 1);
+          setPlaybooks(newPlaybooks);
+          setDraggedIndex(null);
+          setIsOverTrash(false);
+      }
   };
 
   return (
-    <div className="animate-fade-in w-full">
+    <div className="animate-fade-in w-full pb-32">
       <div className="flex justify-between items-center mb-10">
         <h2 className="text-[36px] text-primary font-serif">Playbooks</h2>
         <button 
@@ -129,7 +132,7 @@ const Playbooks: React.FC = () => {
                 onDragEnd={handleDragEnd}
                 onDragOver={(e) => e.preventDefault()}
                 className={`border border-gray-300 rounded-lg p-5 bg-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm cursor-move transition-all duration-200 ${
-                    draggedIndex === index ? 'opacity-50 bg-gray-50 scale-[1.01] border-gray-400' : 'opacity-100 hover:border-gray-400'
+                    draggedIndex === index ? 'opacity-40 bg-gray-100 border-dashed border-gray-400' : 'opacity-100 hover:border-gray-400'
                 }`}
             >
                 <div className="flex-1 pr-4 pointer-events-none">
@@ -159,6 +162,32 @@ const Playbooks: React.FC = () => {
                 </div>
             </div>
         ))}
+      </div>
+
+      {/* Trash Can Overlay */}
+      <div 
+        className={`fixed bottom-8 left-1/2 transform -translate-x-1/2 w-80 h-20 rounded-full flex items-center justify-center shadow-2xl border-2 transition-all duration-300 z-50 backdrop-blur-sm ${
+            draggedIndex !== null 
+                ? 'translate-y-0 opacity-100' 
+                : 'translate-y-32 opacity-0 pointer-events-none'
+        } ${
+            isOverTrash 
+                ? 'bg-red-600 border-red-700 text-white scale-110 shadow-red-900/20' 
+                : 'bg-white/95 border-red-200 text-red-600 hover:border-red-300'
+        }`}
+        onDragEnter={handleTrashDragEnter}
+        onDragLeave={handleTrashDragLeave}
+        onDragOver={handleTrashDragOver}
+        onDrop={handleTrashDrop}
+      >
+         <div className="flex items-center gap-3 pointer-events-none">
+            <svg xmlns="http://www.w3.org/2000/svg" className={`w-6 h-6 ${isOverTrash ? 'animate-bounce' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            <span className="font-bold text-base uppercase tracking-wide">
+                {isOverTrash ? 'Release to Delete' : 'Drag Here to Delete'}
+            </span>
+         </div>
       </div>
 
       {/* Modal */}

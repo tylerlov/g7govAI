@@ -18,3 +18,10 @@ export interface ScorecardItem {
 export type ScorecardData = ScorecardItem[];
 
 export type AppState = 'idle' | 'analyzing' | 'results' | 'generating_addendum' | 'error';
+
+export interface Playbook {
+  id: number;
+  name: string;
+  description: string;
+  sharedWith: string;
+}

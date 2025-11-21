@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 interface ProgressBarProps {
@@ -14,14 +15,14 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ progress, text }) => {
           className="bg-primary h-2 rounded-full transition-all duration-500 ease-out"
           style={{ width: `${progress}%` }}
           role="progressbar"
-          aria-valuenow={progress}
+          aria-valuenow={Math.round(progress)}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-label="Analysis progress"
         >
         </div>
       </div>
-       <p className="text-sm font-medium text-gray-500">{progress}% Complete</p>
+       <p className="text-sm font-medium text-gray-500">{Math.round(progress)}% Complete</p>
     </div>
   );
 };

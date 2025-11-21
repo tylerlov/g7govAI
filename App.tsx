@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { AppState, ScorecardData } from './types';
-import { INITIAL_MODEL_CLAUSES } from './constants';
+import { AppState, ScorecardData, Playbook } from './types';
+import { INITIAL_MODEL_CLAUSES, INITIAL_PLAYBOOKS } from './constants';
 import { analyzeContract, generateAddendum, generateScorecardSummarySpeech } from './services/geminiService';
 import Header from './components/Header';
 import FileUpload from './components/FileUpload';
@@ -48,6 +48,11 @@ const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>('idle');
   const [activeTab, setActiveTab] = useState<'upload' | 'config' | 'playbooks'>('upload');
   
+  // Playbook State
+  const [playbooks, setPlaybooks] = useState<Playbook[]>(INITIAL_PLAYBOOKS);
+  const [selectedPlaybook, setSelectedPlaybook] = useState<Playbook | null>(INITIAL_PLAYBOOKS[0]);
+  const [isPlaybookDropdownOpen, setIsPlaybookDropdownOpen] = useState(false);
+
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string>('');
   const [modelClauses, setModelClauses] = useState<Record<string, string>>(INITIAL_MODEL_CLAUSES);
@@ -63,10 +68,17 @@ const App: React.FC = () => {
   const modalRef = useRef<HTMLDivElement>(null);
   const activeSourceNode = useRef<AudioBufferSourceNode | null>(null);
   const step2Ref = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const progressIntervalRef = useRef<any>(null);
 
   useEffect(() => {
     // Initialize AudioContext on client-side mount.
     setAudioContext(new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 }));
+    
+    // Cleanup interval on unmount
+    return () => {
+        if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+    };
   }, []);
   
   // Focus management for modal
@@ -82,6 +94,19 @@ const App: React.FC = () => {
           step2Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
   }, [appState]);
+  
+  // Close dropdown on click outside
+  useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+          if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+              setIsPlaybookDropdownOpen(false);
+          }
+      };
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+          document.removeEventListener('mousedown', handleClickOutside);
+      };
+  }, []);
 
   // Keyboard shortcut for theme toggle (Red/White)
   useEffect(() => {
@@ -113,23 +138,50 @@ const App: React.FC = () => {
     setErrorMessage('');
     setProgress(0);
     
-    const progressInterval = setInterval(() => {
-        setProgress(prev => {
-            if (prev >= 95) {
-                return 95;
-            }
-            return prev + 1;
-        });
-    }, 150);
+    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+
+    // Function to manage progress simulation
+    const startProgress = (target: number) => {
+        if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+        
+        progressIntervalRef.current = setInterval(() => {
+            setProgress(prev => {
+                // If we have reached the target, switch to "creep" mode
+                // allowing it to slowly move forward so it doesn't look frozen/stuck.
+                if (prev >= target) {
+                    // Cap at 99% so it never finishes until we explicitly set 100%
+                    if (prev >= 99) return prev;
+                    return prev + 0.1; // Slow creep
+                }
+                
+                const diff = target - prev;
+                // Move towards target. Use a minimum step to ensure visibility 
+                // and a maximum step to prevent jumps.
+                // Slows down as it gets closer (diff * 0.05)
+                const step = Math.max(0.2, diff * 0.05);
+                
+                return Math.min(target, prev + step);
+            });
+        }, 100);
+    };
 
     try {
+      // Phase 1: Analysis
       setProgressText('Analyzing contract against model clauses...');
+      startProgress(65);
+
       const results = await analyzeContract(file, modelClauses);
       
+      // Phase 2: Addendum
+      // Ensure visual jump if analysis was fast, or just smooth continuation
+      // The startProgress function will handle starting from current 'prev'
       setProgressText('Generating addendum...');
+      startProgress(95);
+
       const addendum = await generateAddendum(file, results, modelClauses);
       
-      clearInterval(progressInterval);
+      // Phase 3: Complete
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       setProgress(100);
       setProgressText('Analysis complete');
       
@@ -140,7 +192,7 @@ const App: React.FC = () => {
       }, 500);
 
     } catch (error) {
-      clearInterval(progressInterval);
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       console.error('Analysis or addendum generation failed:', error);
       setErrorMessage('Failed to process the contract. The file might be corrupted or in an unsupported format. Please try again.');
       setAppState('error');
@@ -278,6 +330,7 @@ const App: React.FC = () => {
   };
 
   const handleReset = () => {
+    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
     setFile(null);
     setFileName('');
     setScorecardData(null);
@@ -338,23 +391,23 @@ const App: React.FC = () => {
                 </div>
             </div>
         </div>
-    );
-};
+      );
+  };
 
   return (
     <div className="min-h-screen font-sans bg-white">
       <Header 
         onHomeClick={isUiDisabled ? undefined : handleReset}
-        onEditClauses={appState === 'idle' ? () => setActiveTab(prev => prev === 'config' ? 'upload' : 'config') : undefined}
+        onEditClauses={!isUiDisabled ? () => setActiveTab(prev => prev === 'config' ? 'upload' : 'config') : undefined}
         isEditing={activeTab === 'config'}
-        onPlaybooksClick={appState === 'idle' ? () => setActiveTab(prev => prev === 'playbooks' ? 'upload' : 'playbooks') : undefined}
+        onPlaybooksClick={!isUiDisabled ? () => setActiveTab(prev => prev === 'playbooks' ? 'upload' : 'playbooks') : undefined}
         isPlaybooks={activeTab === 'playbooks'}
       />
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-5xl mx-auto">
             
             {activeTab === 'playbooks' ? (
-                <Playbooks />
+                <Playbooks playbooks={playbooks} setPlaybooks={setPlaybooks} />
             ) : activeTab === 'config' ? (
                 <div className="animate-fade-in">
                     <div className="mb-8">
@@ -381,10 +434,67 @@ const App: React.FC = () => {
                     <div className="bg-box-gray p-8 sm:p-12 rounded-sm mb-8 border border-gray-200 transition-all">
                         <div className="max-w-3xl">
                             <p className="text-lg text-text-primary mb-6">
-                                Before getting started, ensure you have your contract file ready in PDF or Word format. 
+                                Before getting started, select the governing playbook and upload your contract file. 
                                 This tool will analyze the document against our standard model clauses.
                             </p>
                             
+                            {/* Playbook Dropdown */}
+                            <div className="mb-8 relative" ref={dropdownRef}>
+                                <label className="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">
+                                    Select Playbook
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => !isUiDisabled && setIsPlaybookDropdownOpen(!isPlaybookDropdownOpen)}
+                                    disabled={isUiDisabled}
+                                    className={`w-full bg-white border rounded-sm px-4 py-3 text-left focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary flex justify-between items-center shadow-sm transition-all ${isUiDisabled ? 'opacity-60 cursor-not-allowed border-gray-200' : 'border-gray-300 hover:border-gray-400'}`}
+                                    aria-haspopup="listbox"
+                                    aria-expanded={isPlaybookDropdownOpen}
+                                >
+                                    <span className={`block truncate font-medium ${selectedPlaybook ? 'text-gray-900' : 'text-gray-500'}`}>
+                                        {selectedPlaybook ? selectedPlaybook.name : "Choose a playbook..."}
+                                    </span>
+                                    <svg className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${isPlaybookDropdownOpen ? 'transform rotate-180' : ''}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                    </svg>
+                                </button>
+
+                                {isPlaybookDropdownOpen && (
+                                    <div className="absolute z-10 mt-1 w-full bg-white shadow-xl max-h-80 rounded-sm py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm border border-gray-200 animate-fade-in">
+                                        <ul role="listbox">
+                                            {playbooks.map((playbook) => (
+                                                <li
+                                                    key={playbook.id}
+                                                    className={`cursor-pointer select-none relative py-3 pl-4 pr-9 hover:bg-red-50 transition-colors border-b border-gray-100 last:border-0 ${selectedPlaybook?.id === playbook.id ? 'bg-red-50' : 'text-gray-900'}`}
+                                                    onClick={() => {
+                                                        setSelectedPlaybook(playbook);
+                                                        setIsPlaybookDropdownOpen(false);
+                                                    }}
+                                                    role="option"
+                                                    aria-selected={selectedPlaybook?.id === playbook.id}
+                                                >
+                                                    <div className="flex flex-col">
+                                                        <span className={`block truncate font-bold text-sm ${selectedPlaybook?.id === playbook.id ? 'text-primary' : 'text-gray-900'}`}>
+                                                            {playbook.name}
+                                                        </span>
+                                                        <span className={`block text-xs text-gray-500 mt-1 font-medium`}>
+                                                            {playbook.description}
+                                                        </span>
+                                                    </div>
+                                                    {selectedPlaybook?.id === playbook.id ? (
+                                                        <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-primary">
+                                                            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                            </svg>
+                                                        </span>
+                                                    ) : null}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+
                             <div className="mt-8">
                                 <FileUpload onFileSelect={handleFileSelect} disabled={isUiDisabled} />
                             </div>
@@ -407,7 +517,7 @@ const App: React.FC = () => {
                             </div>
                         </div>
                     </div>
-
+                    {/* ... Rest of the component ... */}
                     <div className="step-divider"></div>
 
                     {/* Step 2: Scorecard */}
