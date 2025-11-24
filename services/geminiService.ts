@@ -53,6 +53,8 @@ export const analyzeContract = async (
     5. Extract the exact text of the relevant clause from the contract. If none is found, return an empty string.
     6. Identify the specific section number or clause reference in the contract (e.g., "Section 5.1", "Clause 12.3", "Recital A"). If the clause is missing or not found, return "N/A".
     7. Provide a "Plain Language Explanation". This should explain the analysis and risks using clear, college-level writing that is easy for a layperson to understand. It must be no more than two sentences long and free of complex legal jargon.
+    8. Provide a "Suggested Revision". Rewrite the contract clause (or draft a new one if missing) so that it is conceptually compliant with the standard set out in the Model Clause. If the original clause is already compliant (GREEN), strictly return the original text.
+    9. Provide a "Suggested Revision HTML". This must be the exact same text as the "Suggested Revision", but formatted using HTML <del> tags for deleted text and <ins> tags for inserted/new text to show the changes relative to the original Contract Clause (Track Changes style). If it is a completely new clause, wrap the whole thing in <ins>.
 
     Return your analysis as a JSON object matching the provided schema. Ensure every field is populated for every topic provided.
   `;
@@ -75,9 +77,11 @@ export const analyzeContract = async (
             plainLanguageExplanation: { type: Type.STRING },
             contractClause: { type: Type.STRING },
             sectionReference: { type: Type.STRING },
+            suggestedRevision: { type: Type.STRING },
+            suggestedRevisionHtml: { type: Type.STRING },
             modelClause: { type: Type.STRING },
           },
-          required: ["topic", "score", "summary", "plainLanguageExplanation", "contractClause", "sectionReference", "modelClause"]
+          required: ["topic", "score", "summary", "plainLanguageExplanation", "contractClause", "sectionReference", "suggestedRevision", "suggestedRevisionHtml", "modelClause"]
         }
       }
     }

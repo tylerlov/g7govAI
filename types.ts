@@ -13,6 +13,8 @@ export interface ScorecardItem {
   contractClause: string;
   modelClause: string;
   sectionReference: string;
+  suggestedRevision: string;
+  suggestedRevisionHtml?: string;
 }
 
 export type ScorecardData = ScorecardItem[];

@@ -128,8 +128,8 @@ const Playbooks: React.FC<PlaybooksProps> = ({ playbooks, setPlaybooks }) => {
       </div>
 
       <div className="grid grid-cols-12 gap-4 mb-3 px-1">
-          <div className="col-span-8 font-extrabold text-gray-900 text-sm uppercase tracking-wide">Playbook Name</div>
-          <div className="col-span-4 font-extrabold text-gray-900 text-sm uppercase tracking-wide text-right">Shared with</div>
+          <div className="col-span-8 font-extrabold text-gray-900 text-base uppercase tracking-wide">Playbook Name</div>
+          <div className="col-span-4 font-extrabold text-gray-900 text-base uppercase tracking-wide text-right">Shared with</div>
       </div>
 
       <div className="space-y-4" role="list">
@@ -155,7 +155,7 @@ const Playbooks: React.FC<PlaybooksProps> = ({ playbooks, setPlaybooks }) => {
                     />
                     <div>
                         <h3 className="font-bold text-primary text-lg leading-tight mb-1">{pb.name}</h3>
-                        <p className="text-gray-900 text-sm font-medium leading-snug">{pb.description}</p>
+                        <p className="text-gray-900 text-base font-medium leading-snug">{pb.description}</p>
                     </div>
                 </div>
 
@@ -168,7 +168,7 @@ const Playbooks: React.FC<PlaybooksProps> = ({ playbooks, setPlaybooks }) => {
                                 const updated = playbooks.map(p => p.id === pb.id ? {...p, sharedWith: e.target.value} : p);
                                 setPlaybooks(updated);
                             }}
-                            className="w-full appearance-none bg-white border-2 border-gray-300 text-gray-900 py-2 px-4 pr-10 rounded-md leading-tight focus:outline-none focus:border-gray-900 font-bold text-sm truncate cursor-pointer"
+                            className="w-full appearance-none bg-white border-2 border-gray-300 text-gray-900 py-2 px-4 pr-10 rounded-md leading-tight focus:outline-none focus:border-gray-900 font-bold text-base truncate cursor-pointer"
                             // Stop propagation to prevent dragging when interacting with select
                             onMouseDown={(e) => e.stopPropagation()}
                          >
@@ -221,7 +221,7 @@ const Playbooks: React.FC<PlaybooksProps> = ({ playbooks, setPlaybooks }) => {
         >
             <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full p-8 border-2 border-gray-300 relative animate-fade-in">
                 <h3 id="add-playbook-title" className="text-2xl font-extrabold text-gray-900 mb-2">Add Playbook</h3>
-                <p className="text-gray-900 font-bold text-sm mb-6">This tool accepts playbooks in Word or PDF format.</p>
+                <p className="text-gray-900 font-bold text-base mb-6">This tool accepts playbooks in Word or PDF format.</p>
                 
                 <div className="space-y-5">
                     {/* Name */}
@@ -232,7 +232,7 @@ const Playbooks: React.FC<PlaybooksProps> = ({ playbooks, setPlaybooks }) => {
                             placeholder="Name"
                             value={newName}
                             onChange={(e) => setNewName(e.target.value)}
-                            className="w-full border-2 border-gray-300 bg-white rounded-md p-3 text-gray-900 placeholder-gray-500 font-normal text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                            className="w-full border-2 border-gray-300 bg-white rounded-md p-3 text-gray-900 placeholder-gray-500 font-normal text-base focus:outline-none focus:ring-2 focus:ring-gray-900"
                             aria-label="Playbook Name"
                          />
                     </div>
@@ -249,11 +249,11 @@ const Playbooks: React.FC<PlaybooksProps> = ({ playbooks, setPlaybooks }) => {
                         <div className="flex items-center gap-3">
                             <button 
                                 onClick={() => fileInputRef.current?.click()}
-                                className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400"
+                                className="px-4 py-2 bg-white border border-gray-300 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400"
                             >
                                 Choose File
                             </button>
-                            <span className={`text-sm truncate ${newFile ? 'text-gray-900 font-medium' : 'text-gray-500 italic'}`}>
+                            <span className={`text-base truncate ${newFile ? 'text-gray-900 font-medium' : 'text-gray-500 italic'}`}>
                                 {newFile ? newFile.name : 'No file chosen'}
                             </span>
                         </div>
@@ -266,19 +266,19 @@ const Playbooks: React.FC<PlaybooksProps> = ({ playbooks, setPlaybooks }) => {
                             rows={4}
                             value={newDesc}
                             onChange={(e) => setNewDesc(e.target.value)}
-                            className="w-full border-2 border-gray-300 bg-white rounded-md p-3 text-gray-900 placeholder-gray-500 font-normal text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
+                            className="w-full border-2 border-gray-300 bg-white rounded-md p-3 text-gray-900 placeholder-gray-500 font-normal text-base focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
                             aria-label="Description"
                         />
                     </div>
 
                     {/* Shared With */}
                     <div>
-                         <label className="block text-gray-900 font-extrabold text-sm mb-1">Shared with</label>
+                         <label className="block text-gray-900 font-extrabold text-base mb-1">Shared with</label>
                          <div className="relative w-1/2">
                             <select 
                                 value={newShared}
                                 onChange={(e) => setNewShared(e.target.value)}
-                                className="w-full appearance-none bg-white border-2 border-gray-300 text-gray-900 py-2 px-3 pr-8 rounded-md leading-tight focus:outline-none focus:border-gray-900 font-medium text-sm"
+                                className="w-full appearance-none bg-white border-2 border-gray-300 text-gray-900 py-2 px-3 pr-8 rounded-md leading-tight focus:outline-none focus:border-gray-900 font-medium text-base"
                             >
                                 {SHARED_OPTIONS.map(opt => (
                                     <option key={opt} value={opt}>{opt}</option>
@@ -293,7 +293,7 @@ const Playbooks: React.FC<PlaybooksProps> = ({ playbooks, setPlaybooks }) => {
                     <div className="flex justify-end mt-8 pt-2">
                          <button 
                             onClick={handleSave}
-                            className="px-12 py-3 bg-gray-900 text-white font-bold rounded-md hover:bg-gray-800 transition-colors shadow-sm text-sm"
+                            className="px-12 py-3 bg-gray-900 text-white font-bold rounded-md hover:bg-gray-800 transition-colors shadow-sm text-base"
                         >
                             Save
                         </button>

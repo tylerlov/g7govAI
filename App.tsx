@@ -444,7 +444,7 @@ const App: React.FC = () => {
                             
                             {/* Playbook Dropdown */}
                             <div className="mb-8 relative" ref={dropdownRef}>
-                                <label className="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">
+                                <label className="block text-base font-bold text-gray-900 mb-2 uppercase tracking-wide">
                                     Select Playbook
                                 </label>
                                 <button
@@ -464,7 +464,7 @@ const App: React.FC = () => {
                                 </button>
 
                                 {isPlaybookDropdownOpen && (
-                                    <div className="absolute z-10 mt-1 w-full bg-white shadow-xl max-h-80 rounded-sm py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm border border-gray-200 animate-fade-in">
+                                    <div className="absolute z-10 mt-1 w-full bg-white shadow-xl max-h-80 rounded-sm py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-base border border-gray-200 animate-fade-in">
                                         <ul role="listbox">
                                             {playbooks.map((playbook) => (
                                                 <li
@@ -478,10 +478,10 @@ const App: React.FC = () => {
                                                     aria-selected={selectedPlaybook?.id === playbook.id}
                                                 >
                                                     <div className="flex flex-col">
-                                                        <span className={`block truncate font-bold text-sm ${selectedPlaybook?.id === playbook.id ? 'text-primary' : 'text-gray-900'}`}>
+                                                        <span className={`block truncate font-bold text-base ${selectedPlaybook?.id === playbook.id ? 'text-primary' : 'text-gray-900'}`}>
                                                             {playbook.name}
                                                         </span>
-                                                        <span className={`block text-xs text-gray-500 mt-1 font-medium`}>
+                                                        <span className={`block text-sm text-gray-700 mt-1 font-medium`}>
                                                             {playbook.description}
                                                         </span>
                                                     </div>
@@ -500,7 +500,7 @@ const App: React.FC = () => {
                             </div>
 
                             <div className="mt-8">
-                                <label className="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">
+                                <label className="block text-base font-bold text-gray-900 mb-2 uppercase tracking-wide">
                                     Upload Contract <span className="text-red-600 normal-case font-normal ml-1">*</span>
                                 </label>
                                 <FileUpload onFileSelect={handleFileSelect} disabled={isUiDisabled} selectedFile={file} />
@@ -510,7 +510,7 @@ const App: React.FC = () => {
                                 <div className="mt-6">
                                     <button
                                         onClick={() => setShowContext(true)}
-                                        className="text-gray-600 font-bold text-sm hover:underline focus:outline-none flex items-center"
+                                        className="text-gray-500 font-bold text-base hover:underline focus:outline-none flex items-center"
                                         disabled={isUiDisabled}
                                     >
                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
@@ -521,10 +521,10 @@ const App: React.FC = () => {
                                 </div>
                             ) : (
                                 <div className="mt-8 animate-fade-in">
-                                    <label className="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">
+                                    <label className="block text-base font-bold text-gray-900 mb-2 uppercase tracking-wide">
                                         Provide additional context
                                     </label>
-                                    <p className="text-gray-600 mb-4 text-base">
+                                    <p className="text-gray-800 mb-4 text-base">
                                         Provide any RFP, contract specifications, or other documents that might provide context as to the nature of the contract (optional)
                                     </p>
                                     <FileUpload onFileSelect={(f) => setContextFile(f)} disabled={isUiDisabled} variant="secondary" selectedFile={contextFile} />
@@ -539,6 +539,9 @@ const App: React.FC = () => {
                                 >
                                     {appState === 'results' ? 'Re-analyze' : 'Analyze Contract'}
                                 </button>
+                                <p className="mt-4 text-xs text-gray-600 leading-[1.2]">
+                                    You acknowledge and understand that this tool is designed and being made available for informational purposes only. Accordingly, it is not designed or intended to be a substitute for legal advice and should not be used as a replacement or substitute for legal advice.
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -550,7 +553,7 @@ const App: React.FC = () => {
                         <h2 className={`text-[36px] mb-8 transition-colors duration-300 font-serif ${
                             appState === 'idle' ? 'text-gray-300' : 'text-primary'
                         }`}>
-                            Step 2: Review Risk Scorecard
+                            Step 2: Review Scorecard
                         </h2>
 
                         {(appState === 'analyzing' || appState === 'results' || appState === 'error') && (

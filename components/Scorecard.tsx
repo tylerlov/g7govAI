@@ -58,6 +58,7 @@ const getHeatmapStyles = (score: Score) => {
 
 const Scorecard: React.FC<ScorecardProps> = ({ data, onPlaySummary, onStopSummary, ttsState }) => {
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
+  const [copiedTopic, setCopiedTopic] = useState<string | null>(null);
 
   const toggleItem = (topic: string) => {
     setExpandedItems(prev => ({
@@ -80,21 +81,28 @@ const Scorecard: React.FC<ScorecardProps> = ({ data, onPlaySummary, onStopSummar
     }
   };
 
+  const handleCopy = (text: string, topic: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+        setCopiedTopic(topic);
+        setTimeout(() => setCopiedTopic(null), 2000);
+    });
+  };
+
   const redCount = data.filter(item => item.score === Score.RED).length;
   const yellowCount = data.filter(item => item.score === Score.YELLOW).length;
   const greenCount = data.filter(item => item.score === Score.GREEN).length;
 
   return (
     <div className="bg-box-gray rounded-sm p-8 border border-gray-200">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-4">
           <h3 className="text-2xl font-bold text-primary">Contract Scorecard</h3>
           <button
             onClick={ttsState === 'playing' ? onStopSummary : onPlaySummary}
             disabled={ttsState === 'generating'}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-base font-medium transition-colors ${
                 ttsState === 'playing' 
                 ? 'bg-red-100 text-primary hover:bg-red-200' 
-                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50'
+                : 'bg-white border border-gray-300 text-gray-800 hover:bg-gray-50 disabled:opacity-50'
             }`}
             aria-label={ttsState === 'playing' ? "Stop audio summary" : "Listen to audio summary"}
           >
@@ -124,6 +132,10 @@ const Scorecard: React.FC<ScorecardProps> = ({ data, onPlaySummary, onStopSummar
           </button>
         </div>
 
+        <p className="text-lg text-gray-800 mb-6">
+            This section compares the language in the uploaded contract against the requirements set out in your selected playbook.
+        </p>
+
         {/* Summary Visualization */}
         <div className="flex flex-wrap justify-between items-center gap-4 mb-8 pb-6 border-b border-gray-300" role="status" aria-label="Risk Summary">
             <div className="flex flex-wrap gap-4">
@@ -142,7 +154,7 @@ const Scorecard: React.FC<ScorecardProps> = ({ data, onPlaySummary, onStopSummar
             </div>
             <button 
                 onClick={toggleAll} 
-                className="text-sm text-gray-500 hover:text-gray-800 hover:underline transition-colors whitespace-nowrap"
+                className="text-base text-gray-600 hover:text-gray-900 hover:underline transition-colors whitespace-nowrap"
             >
                 {allExpanded ? 'Collapse All' : 'Expand All'}
             </button>
@@ -167,11 +179,11 @@ const Scorecard: React.FC<ScorecardProps> = ({ data, onPlaySummary, onStopSummar
                         <div className="flex-1 pr-4">
                             <h4 className={`text-lg font-bold ${styles.text} mb-1`}>{item.topic}</h4>
                             <div className="flex items-center gap-3">
-                                <span className={`text-xs font-bold uppercase tracking-wider ${styles.subText}`}>{styles.label}</span>
+                                <span className={`text-sm font-bold uppercase tracking-wider ${styles.subText}`}>{styles.label}</span>
                                 {item.sectionReference && item.sectionReference !== 'N/A' && (
                                     <>
                                         <span className="text-gray-300" aria-hidden="true">|</span>
-                                        <span className="text-sm text-gray-500 font-medium">
+                                        <span className="text-base text-gray-500 font-medium">
                                             {item.sectionReference}
                                         </span>
                                     </>
@@ -193,7 +205,7 @@ const Scorecard: React.FC<ScorecardProps> = ({ data, onPlaySummary, onStopSummar
                     </div>
                     
                     {/* Plain Language Explanation visible in collapsed state */}
-                    <div className="mt-3 text-sm text-gray-600 leading-relaxed font-medium">
+                    <div className="mt-3 text-base text-gray-800 leading-relaxed font-medium">
                         {item.plainLanguageExplanation}
                     </div>
                 </button>
@@ -202,26 +214,49 @@ const Scorecard: React.FC<ScorecardProps> = ({ data, onPlaySummary, onStopSummar
                     <div className="px-6 pb-10 pt-2 border-t border-gray-100 animate-fade-in">
                          <div className="space-y-6 mt-6">
                             <div>
-                                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-2">Reasoning</h4>
-                                <p className="text-gray-700 leading-relaxed">{item.summary}</p>
+                                <h4 className="text-base font-bold text-gray-900 uppercase tracking-wide mb-2">Reasoning</h4>
+                                <p className="text-gray-900 leading-relaxed">{item.summary}</p>
                             </div>
                             
                             <div className="grid md:grid-cols-2 gap-6 mt-4">
                                 <div>
-                                    <h4 className="text-sm font-bold text-gray-600 uppercase tracking-wide mb-2">
+                                    <h4 className="text-base font-bold text-gray-600 uppercase tracking-wide mb-2">
                                         Contract Clause
                                         {item.sectionReference && item.sectionReference !== 'N/A' && (
                                                 <span className="font-normal normal-case ml-2 text-gray-500">({item.sectionReference})</span>
                                         )}
                                     </h4>
-                                    <div className="p-6 bg-gray-50 rounded-sm border border-gray-200 italic text-sm text-gray-600 h-full">
+                                    <div className="p-6 bg-gray-50 rounded-sm border border-gray-200 text-sm text-gray-800 h-full">
                                         {item.contractClause || "No specific clause found."}
                                     </div>
                                 </div>
                                 <div>
-                                    <h4 className="text-sm font-bold text-gray-600 uppercase tracking-wide mb-2">Standard Model Clause</h4>
-                                    <div className="p-6 bg-gray-50 rounded-sm border border-gray-200 text-sm text-gray-600 h-full">
-                                        {item.modelClause}
+                                    <h4 className="text-base font-bold text-gray-600 uppercase tracking-wide mb-2">Suggested Revision</h4>
+                                    <div className="relative h-full">
+                                        <div className="p-6 bg-gray-50 rounded-sm border border-gray-200 text-sm text-gray-800 h-full font-sans leading-relaxed">
+                                             {/* Render HTML Diff if available, otherwise fallback to standard revision */}
+                                            <div 
+                                                className="diff-content"
+                                                dangerouslySetInnerHTML={{ 
+                                                    __html: item.suggestedRevisionHtml || item.suggestedRevision 
+                                                }} 
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={() => handleCopy(item.suggestedRevision, item.topic)}
+                                            className="absolute top-2 right-2 p-2 text-gray-400 hover:text-gray-600 bg-white rounded-full shadow-sm border border-gray-200 transition-colors"
+                                            title="Copy suggested revision"
+                                        >
+                                            {copiedTopic === item.topic ? (
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                </svg>
+                                            ) : (
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                                </svg>
+                                            )}
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -237,4 +272,3 @@ const Scorecard: React.FC<ScorecardProps> = ({ data, onPlaySummary, onStopSummar
 };
 
 export default Scorecard;
-    

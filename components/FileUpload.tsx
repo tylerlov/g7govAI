@@ -88,7 +88,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, disabled, variant
           <p className={`mt-2 font-bold text-gray-900 ${isSecondary ? 'text-base' : 'text-xl mt-4'}`}>
             {selectedFile?.name}
           </p>
-          <p className="mt-2 text-sm text-gray-600">Click to replace</p>
+          <p className="mt-2 text-base text-gray-700">Click to replace</p>
         </div>
       ) : (
         <div className="text-center">
@@ -98,7 +98,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, disabled, variant
           <p className={`mt-2 font-medium text-gray-900 ${isSecondary ? 'text-base' : 'text-xl mt-4'}`}>
             Click to Upload PDF or Word Document
           </p>
-          {!isSecondary && <p className="mt-2 text-sm text-gray-500">(or drag and drop here)</p>}
+          {!isSecondary && <p className="mt-2 text-base text-gray-600">(or drag and drop here)</p>}
         </div>
       )}
     </div>

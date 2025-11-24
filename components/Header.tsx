@@ -31,7 +31,7 @@ const Header: React.FC<HeaderProps> = ({ onHomeClick, onEditClauses, isEditing, 
             {onPlaybooksClick && (
               <button 
                 onClick={onPlaybooksClick}
-                className={`flex items-center gap-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary rounded-sm px-3 py-1 ${isPlaybooks ? 'bg-white text-primary' : 'text-white hover:bg-white/10'}`}
+                className={`flex items-center gap-2 text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary rounded-sm px-3 py-1 ${isPlaybooks ? 'bg-white text-primary' : 'text-white hover:bg-white/10'}`}
               >
                 {isPlaybooks ? (
                   <>
@@ -54,7 +54,7 @@ const Header: React.FC<HeaderProps> = ({ onHomeClick, onEditClauses, isEditing, 
             {onEditClauses && (
               <button 
                 onClick={onEditClauses}
-                className={`flex items-center gap-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary rounded-full p-2 ${isEditing ? 'bg-white text-primary' : 'text-white hover:bg-white/10'}`}
+                className={`flex items-center gap-2 text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary rounded-full p-2 ${isEditing ? 'bg-white text-primary' : 'text-white hover:bg-white/10'}`}
                 aria-label={isEditing ? "Back to Upload" : "Configuration"}
               >
                 {isEditing ? (
