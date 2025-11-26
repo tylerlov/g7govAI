@@ -22,7 +22,7 @@ const Header: React.FC<HeaderProps> = ({ onHomeClick, onEditClauses, isEditing, 
             aria-label="Return to home screen"
           >
             <h1 className="text-[18px] font-medium text-white tracking-tight font-sans">
-              G7 GovAI: Negotiation Accelerator
+              GovAI Contract Copilot
             </h1>
           </button>
 

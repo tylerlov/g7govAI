@@ -262,7 +262,7 @@ const Playbooks: React.FC<PlaybooksProps> = ({ playbooks, setPlaybooks }) => {
                     {/* Description */}
                     <div>
                         <textarea 
-                            placeholder="Description"
+                            placeholder="Describe when a user should select this playbook"
                             rows={4}
                             value={newDesc}
                             onChange={(e) => setNewDesc(e.target.value)}

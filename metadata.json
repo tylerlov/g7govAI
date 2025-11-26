@@ -1,5 +1,5 @@
 {
-  "name": "G7 GovAI Beta",
+  "name": "GovAI Contract Copilot",
   "description": "An intelligent tool that analyzes AI product contracts against configurable model clauses. It provides a color-coded risk scorecard and generates a remedial addendum to address compliance gaps.",
   "requestFramePermissions": []
 }
