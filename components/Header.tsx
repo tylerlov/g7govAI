@@ -38,7 +38,7 @@ const Header: React.FC<HeaderProps> = ({ onHomeClick, onEditClauses, isEditing, 
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
-                    <span>Back to Upload</span>
+                    <span>Back</span>
                   </>
                 ) : (
                   <>
@@ -55,14 +55,14 @@ const Header: React.FC<HeaderProps> = ({ onHomeClick, onEditClauses, isEditing, 
               <button 
                 onClick={onEditClauses}
                 className={`flex items-center gap-2 text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary rounded-full p-2 ${isEditing ? 'bg-white text-primary' : 'text-white hover:bg-white/10'}`}
-                aria-label={isEditing ? "Back to Upload" : "Configuration"}
+                aria-label={isEditing ? "Back" : "Configuration"}
               >
                 {isEditing ? (
                   <>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
-                    <span className="pr-1">Back to Upload</span>
+                    <span className="pr-1">Back</span>
                   </>
                 ) : (
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-[14px] w-[14px] text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
